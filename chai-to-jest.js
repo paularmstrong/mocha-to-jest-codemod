@@ -17,37 +17,31 @@ export default function transformer(file, api) {
   const j = api.jscodeshift;
   const root = j(file.source);
 
-  root.find(j.CallExpression, {
-    type: 'CallExpression',
-    callee: {
-      type: 'Identifier',
-      name: 'suite'
-    }
-  }).replaceWith((path) => j.callExpression(j.identifier('describe'), path.value.arguments));
+  const mochaToJasmine = [
+    { mocha: 'suite', jasmine: 'describe' },
+    { mocha: 'test', jasmine: 'it' },
+    { mocha: 'setup', jasmine: 'beforeEach' },
+    { mocha: 'teardown', jasmine: 'afterEach' }
+  ];
 
-  root.find(j.CallExpression, {
-    type: 'CallExpression',
-    callee: {
-      type: 'Identifier',
-      name: 'test'
-    }
-  }).replaceWith((path) => j.callExpression(j.identifier('it'), path.value.arguments));
+  mochaToJasmine.forEach(({ mocha, jasmine }) => {
+    root.find(j.CallExpression, {
+      type: 'CallExpression',
+      callee: { type: 'Identifier', name: mocha }
+    }).replaceWith((path) => j.callExpression(j.identifier(jasmine), path.value.arguments));
 
-  root.find(j.CallExpression, {
-    type: 'CallExpression',
-    callee: {
-      type: 'Identifier',
-      name: 'setup'
-    }
-  }).replaceWith((path) => j.callExpression(j.identifier('beforeEach'), path.value.arguments));
-
-  root.find(j.CallExpression, {
-    type: 'CallExpression',
-    callee: {
-      type: 'Identifier',
-      name: 'teardown'
-    }
-  }).replaceWith((path) => j.callExpression(j.identifier('afterEach'), path.value.arguments));
+    root.find(j.CallExpression, {
+      type: 'CallExpression',
+      callee: {
+        type: 'MemberExpression',
+        object: { type: 'Identifier', name: mocha },
+        property: { type: 'Identifier', name: 'skip' }
+      }
+    }).replaceWith((path) => j.callExpression(j.memberExpression(
+      j.identifier(jasmine),
+      j.identifier('skip')
+    ), path.value.arguments));
+  });
 
   const makeExpectation = (identifier, actual, expectation) => {
     return j.callExpression(j.memberExpression(
@@ -228,4 +222,3 @@ export default function transformer(file, api) {
 
   return root.toSource();
 }
-
