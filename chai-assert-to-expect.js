@@ -130,52 +130,6 @@ export default function transformer(file, api) {
     }
   ];
 
-  // TODOS:
-  // - isFunction
-  // - isNotFunction
-  // - isObject
-  // - isNotObject
-  // - isArray
-  // - isNotArray
-  // - isString
-  // - isNotString
-  // - isNumber
-  // - isNotNumber
-  // - isBoolean
-  // - isNotBoolean
-  // - typeOf
-  // - notTypeOf
-  // - property
-  // - notProperty
-  // - deepProperty
-  // - notDeepProperty
-  // - propertyVal
-  // - propertyNotVal
-  // - deepPropertyVal
-  // - deepPropertyNotVal
-  // - lengthOf
-  // - operator
-  // - closeTo
-  // - approximately
-  // - sameMembers
-  // - sameDeepMembers
-  // - includeMembers
-  // - includeDeepMembers
-  // - oneOf
-  // - changes
-  // - doesNotChange
-  // - increases
-  // - doesNotIncrease
-  // - decreases
-  // - doesNotDecrease
-  // - ifError
-  // - isExtensible
-  // - isNotExtensible
-  // - isSealed
-  // - isNotSealed
-  // - isFrozen
-  // - isNotFrozen
-  //
   const getArguments = (path, ignoreExpectedValue, expectedOverride) => {
     const [ actual, originalExpectation ] = path.value.arguments;
     const expectation = !ignoreExpectedValue ? (expectedOverride || originalExpectation) : undefined;
