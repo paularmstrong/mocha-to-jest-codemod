@@ -1,0 +1,22 @@
+{
+  "name": "mocha-to-jest-codemod",
+  "version": "0.0.0",
+  "description": "```sh $ jscodeshift <path> -t chai-assert-to-expect.js $ jscodeshift <path> -t mocha-to-jest.js ```",
+  "main": "chai-assert-to-expect.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paularmstrong/mocha-to-jest-codemod.git"
+  },
+  "author": "Paul Armstrong",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/paularmstrong/mocha-to-jest-codemod/issues"
+  },
+  "homepage": "https://github.com/paularmstrong/mocha-to-jest-codemod#readme",
+  "devDependencies": {
+    "jscodeshift": "^0.3.30"
+  }
+}

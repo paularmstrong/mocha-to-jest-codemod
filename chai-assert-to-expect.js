@@ -79,13 +79,13 @@ export default function transformer(file, api) {
     {
       assert: 'isTrue',
       expect: 'toBe',
-      expectedOverride: { type: j.Literal, value: false, raw: 'true' },
+      expectedOverride: j.literal(true),
       includeNegative: 'isNotTrue'
     },
     {
       assert: 'isFalse',
       expect: 'toBe',
-      expectedOverride: { type: j.Literal, value: false, raw: 'false' },
+      expectedOverride: j.literal(false),
       includeNegative: 'isNotFalse'
     },
     {
@@ -98,7 +98,7 @@ export default function transformer(file, api) {
       assert: 'isNaN',
       expect: 'toBe',
       ignoreExpectedValue: true,
-      expectedOverride: { type: j.Identifier, name: 'NaN' },
+      expectedOverride: j.identifier('NaN'),
       includeNegative: 'isNotNaN'
     },
     {
@@ -133,7 +133,7 @@ export default function transformer(file, api) {
   const getArguments = (path, ignoreExpectedValue, expectedOverride) => {
     const [ actual, originalExpectation ] = path.value.arguments;
     const expectation = !ignoreExpectedValue ? (expectedOverride || originalExpectation) : undefined;
-    return [ actual, expectation ];
+    return expectation ? [ actual, expectation ] : [ actual ];
   }
 
   conversions.forEach(({ assert, expect, ignoreExpectedValue, includeNegative, expectedOverride }) => {
@@ -147,6 +147,17 @@ export default function transformer(file, api) {
       });
     }
   });
+
+  root.find(j.ImportDeclaration, {
+    specifiers: [
+      {
+        type: 'ImportSpecifier',
+        imported: { type: 'Identifier', name: 'assert' },
+        local: { type: 'Identifier', name: 'assert' }
+      }
+    ],
+    source: { type: 'Literal', value: 'chai' }
+  }).remove();
 
   return root.toSource();
 }
