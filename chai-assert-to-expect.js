@@ -158,6 +158,18 @@ export default function transformer(file, api) {
     }
   });
 
+  // assert.propertyVal -> expect(*.[prop]).toEqual()
+  root.find(j.CallExpression, getAssertionExpression('propertyVal')).replaceWith((path) => {
+    const [ obj, prop, value ] = path.value.arguments;
+    return makeExpectation('toEqual', j.memberExpression(obj, prop), value);
+  });
+
+  // assert.propertyNotVal -> expect(*.[prop]).not.toEqual()
+  root.find(j.CallExpression, getAssertionExpression('propertyNotVal')).replaceWith((path) => {
+    const [ obj, prop, value ] = path.value.arguments;
+    return makeNegativeExpectation('toEqual', j.memberExpression(obj, prop), value);
+  });
+
   /**
    * Type checking
    */
@@ -171,29 +183,22 @@ export default function transformer(file, api) {
 
   typeofs.forEach(({ assert, type }) => {
     root.find(j.CallExpression, getAssertionExpression(assert)).replaceWith((path) => {
-      return makeExpectation('toBe', j.unaryExpression({
-        type: 'UnaryExpression',
-        operator: 'typeof',
-        argument: path.value.arguments[0]
-      }), j.literal(type));
+      return makeExpectation('toBe', j.unaryExpression('typeof', path.value.arguments[0]), j.literal(type));
     });
 
     root.find(j.CallExpression, getAssertionExpression(assert.replace(/^is/, 'isNot'))).replaceWith((path) => {
-      return makeNegativeExpectation('toBe', j.unaryExpression({
-        type: 'UnaryExpression',
-        operator: 'typeof',
-        argument: path.value.arguments[0]
-      }), j.literal(type));
+      return makeNegativeExpectation('toBe', j.unaryExpression('typeof', path.value.arguments[0]), j.literal(type));
     })
   });
 
-  // isArray, because typeof doesn't work for arrays like you would actually want
+  // isArray/isNotArray, because typeof doesn't work for arrays like you would actually want
   root.find(j.CallExpression, getAssertionExpression('isArray')).replaceWith((path) => {
     return makeExpectation('toBe',
       j.callExpression(j.memberExpression(j.identifier('Array'), j.identifier('isArray')), path.value.arguments[0]),
       j.literal(true)
     );
   });
+
   root.find(j.CallExpression, getAssertionExpression('isNotArray')).replaceWith((path) => {
     return makeNegativeExpectation('toBe',
       j.callExpression(j.memberExpression(j.identifier('Array'), j.identifier('isArray')), path.value.arguments[0]),
@@ -201,7 +206,7 @@ export default function transformer(file, api) {
     );
   });
 
-  // assert.lengthOf-> expect(*.length).toBe()
+  // assert.lengthOf -> expect(*.length).toBe()
   root.find(j.CallExpression, getAssertionExpression('lengthOf')).replaceWith((path) => {
     return makeExpectation('toBe',
       j.memberExpression(path.value.arguments[0], j.identifier('length')),
@@ -210,10 +215,7 @@ export default function transformer(file, api) {
 
   // assert -> expect().toBeTruthy()
   root.find(j.CallExpression, {
-    callee: {
-      type: 'Identifier',
-      name: 'assert'
-    }
+    callee: { type: 'Identifier', name: 'assert' }
   }).replaceWith((path) => makeExpectation('toBeTruthy', path.value.arguments[0]));
 
   // Remove import

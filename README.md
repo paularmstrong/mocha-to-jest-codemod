@@ -15,8 +15,6 @@ $ jscodeshift <path> -t mocha-to-jest.js
 - [ ] notProperty
 - [ ] deepProperty
 - [ ] notDeepProperty
-- [ ] propertyVal
-- [ ] propertyNotVal
 - [ ] deepPropertyVal
 - [ ] deepPropertyNotVal
 - [ ] lengthOf
