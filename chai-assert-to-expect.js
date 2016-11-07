@@ -137,6 +137,10 @@ export default function transformer(file, api) {
       expect: 'toThrow',
       ignoreExpectedValue: true,
       includeNegative: 'doesNotThrow'
+    },
+    {
+      assert: 'sameDeepMembers',
+      expect: 'toEqual'
     }
   ];
 
@@ -168,6 +172,12 @@ export default function transformer(file, api) {
   root.find(j.CallExpression, getAssertionExpression('propertyNotVal')).replaceWith((path) => {
     const [ obj, prop, value ] = path.value.arguments;
     return makeNegativeExpectation('toEqual', j.memberExpression(obj, prop), value);
+  });
+
+  // assert.property -> expect(*.[prop]).toBeTruthy()
+  root.find(j.CallExpression, getAssertionExpression('property')).replaceWith((path) => {
+    const [ obj, prop ] = path.value.arguments;
+    return makeExpectation('toBeTruthy', j.memberExpression(obj, prop));
   });
 
   /**

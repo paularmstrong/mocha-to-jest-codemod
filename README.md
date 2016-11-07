@@ -22,7 +22,6 @@ $ jscodeshift <path> -t mocha-to-jest.js
 - [ ] closeTo
 - [ ] approximately
 - [ ] sameMembers
-- [ ] sameDeepMembers
 - [ ] includeMembers
 - [ ] includeDeepMembers
 - [ ] oneOf

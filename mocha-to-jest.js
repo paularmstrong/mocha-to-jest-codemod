@@ -7,8 +7,8 @@ export default function transformer(file, api) {
     { mocha: 'test', jasmine: 'it' },
     { mocha: 'setup', jasmine: 'beforeEach' },
     { mocha: 'teardown', jasmine: 'afterEach' },
-    { mocha: 'suiteSetup', jasmine: 'before' },
-    { mocha: 'suiteTeardown', jasmine: 'after' }
+    { mocha: 'suiteSetup', jasmine: 'beforeAll' },
+    { mocha: 'suiteTeardown', jasmine: 'afterAll' }
   ];
 
   mochaToJasmine.forEach(({ mocha, jasmine }) => {
