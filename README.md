@@ -9,18 +9,6 @@ $ jscodeshift <path> -t mocha-to-jest.js
 
 ### Assertions
 
-- [x] isFunction
-- [x] isNotFunction
-- [x] isObject
-- [x] isNotObject
-- [ ] isArray
-- [ ] isNotArray
-- [x] isString
-- [x] isNotString
-- [x] isNumber
-- [x] isNotNumber
-- [x] isBoolean
-- [x] isNotBoolean
 - [ ] typeOf
 - [ ] notTypeOf
 - [ ] property

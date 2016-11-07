@@ -158,6 +158,9 @@ export default function transformer(file, api) {
     }
   });
 
+  /**
+   * Type checking
+   */
   const typeofs = [
     { assert: 'isFunction', type: 'function' },
     { assert: 'isObject', type: 'object' },
@@ -184,6 +187,36 @@ export default function transformer(file, api) {
     })
   });
 
+  // isArray, because typeof doesn't work for arrays like you would actually want
+  root.find(j.CallExpression, getAssertionExpression('isArray')).replaceWith((path) => {
+    return makeExpectation('toBe',
+      j.callExpression(j.memberExpression(j.identifier('Array'), j.identifier('isArray')), path.value.arguments[0]),
+      j.literal(true)
+    );
+  });
+  root.find(j.CallExpression, getAssertionExpression('isNotArray')).replaceWith((path) => {
+    return makeNegativeExpectation('toBe',
+      j.callExpression(j.memberExpression(j.identifier('Array'), j.identifier('isArray')), path.value.arguments[0]),
+      j.literal(true)
+    );
+  });
+
+  // assert.lengthOf-> expect(*.length).toBe()
+  root.find(j.CallExpression, getAssertionExpression('lengthOf')).replaceWith((path) => {
+    return makeExpectation('toBe',
+      j.memberExpression(path.value.arguments[0], j.identifier('length')),
+      path.value.arguments[1]);
+  });
+
+  // assert -> expect().toBeTruthy()
+  root.find(j.CallExpression, {
+    callee: {
+      type: 'Identifier',
+      name: 'assert'
+    }
+  }).replaceWith((path) => makeExpectation('toBeTruthy', path.value.arguments[0]));
+
+  // Remove import
   root.find(j.ImportDeclaration, {
     specifiers: [
       {
@@ -194,19 +227,6 @@ export default function transformer(file, api) {
     ],
     source: { type: 'Literal', value: 'chai' }
   }).remove();
-
-  root.find(j.CallExpression, {
-    callee: {
-      type: 'Identifier',
-      name: 'assert'
-    }
-  }).replaceWith((path) => makeExpectation('toBeTruthy', path.value.arguments[0]));
-
-  root.find(j.CallExpression, getAssertionExpression('lengthOf')).replaceWith((path) => {
-    return makeExpectation('toBe',
-      j.memberExpression(path.value.arguments[0], j.identifier('length')),
-      path.value.arguments[1]);
-  });
 
   return root.toSource();
 }
