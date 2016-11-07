@@ -36,6 +36,16 @@ export default function transformer(file, api) {
 
   const conversions = [
     {
+      assert: 'ok',
+      expect: 'toBeTruthy',
+      ignoreExpectedValue: true
+    },
+    {
+      assert: 'notOk',
+      expect: 'toBeFalsy',
+      ignoreExpectedValue: true
+    },
+    {
       assert: 'isOk',
       expect: 'toBeTruthy',
       ignoreExpectedValue: true
@@ -148,6 +158,32 @@ export default function transformer(file, api) {
     }
   });
 
+  const typeofs = [
+    { assert: 'isFunction', type: 'function' },
+    { assert: 'isObject', type: 'object' },
+    { assert: 'isString', type: 'string' },
+    { assert: 'isNumber', type: 'number' },
+    { assert: 'isBoolean', type: 'boolean' }
+  ];
+
+  typeofs.forEach(({ assert, type }) => {
+    root.find(j.CallExpression, getAssertionExpression(assert)).replaceWith((path) => {
+      return makeExpectation('toBe', j.unaryExpression({
+        type: 'UnaryExpression',
+        operator: 'typeof',
+        argument: path.value.arguments[0]
+      }), j.literal(type));
+    });
+
+    root.find(j.CallExpression, getAssertionExpression(assert.replace(/^is/, 'isNot'))).replaceWith((path) => {
+      return makeNegativeExpectation('toBe', j.unaryExpression({
+        type: 'UnaryExpression',
+        operator: 'typeof',
+        argument: path.value.arguments[0]
+      }), j.literal(type));
+    })
+  });
+
   root.find(j.ImportDeclaration, {
     specifiers: [
       {
@@ -158,6 +194,19 @@ export default function transformer(file, api) {
     ],
     source: { type: 'Literal', value: 'chai' }
   }).remove();
+
+  root.find(j.CallExpression, {
+    callee: {
+      type: 'Identifier',
+      name: 'assert'
+    }
+  }).replaceWith((path) => makeExpectation('toBeTruthy', path.value.arguments[0]));
+
+  root.find(j.CallExpression, getAssertionExpression('lengthOf')).replaceWith((path) => {
+    return makeExpectation('toBe',
+      j.memberExpression(path.value.arguments[0], j.identifier('length')),
+      path.value.arguments[1]);
+  });
 
   return root.toSource();
 }
