@@ -167,16 +167,16 @@ export default function transformer(file, api) {
     }
   });
 
-  // assert.propertyVal -> expect(*.[prop]).toEqual()
+  // assert.propertyVal -> expect(*.[prop]).toBe()
   root.find(j.CallExpression, getAssertionExpression('propertyVal')).replaceWith((path) => {
     const [ obj, prop, value ] = path.value.arguments;
-    return makeExpectation('toEqual', j.memberExpression(obj, prop), value);
+    return makeExpectation('toBe', j.memberExpression(obj, prop), value);
   });
 
-  // assert.propertyNotVal -> expect(*.[prop]).not.toEqual()
+  // assert.propertyNotVal -> expect(*.[prop]).not.toBe()
   root.find(j.CallExpression, getAssertionExpression('propertyNotVal')).replaceWith((path) => {
     const [ obj, prop, value ] = path.value.arguments;
-    return makeNegativeExpectation('toEqual', j.memberExpression(obj, prop), value);
+    return makeNegativeExpectation('toBe', j.memberExpression(obj, prop), value);
   });
 
   // assert.property -> expect(*.[prop]).toBeTruthy()
