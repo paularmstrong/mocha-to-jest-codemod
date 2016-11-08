@@ -1,6 +1,7 @@
 export default function transformer(file, api) {
   const j = api.jscodeshift;
   const root = j(file.source);
+  const { comments } = root.find(j.Program).get('body', 0).node;
 
   const mochaToJasmine = [
     { mocha: 'suite', jasmine: 'describe' },
@@ -29,6 +30,8 @@ export default function transformer(file, api) {
       j.identifier('skip')
     ), path.value.arguments));
   });
+
+  root.get().node.comments = comments;
 
   return root.toSource();
 }

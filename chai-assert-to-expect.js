@@ -16,6 +16,7 @@ const getAssertionExpression = (identifier) => ({
 export default function transformer(file, api) {
   const j = api.jscodeshift;
   const root = j(file.source);
+  const { comments } = root.find(j.Program).get('body', 0).node;
 
   const makeExpectation = (identifier, actual, expectation) => {
     return j.callExpression(j.memberExpression(
@@ -139,6 +140,10 @@ export default function transformer(file, api) {
       includeNegative: 'doesNotThrow'
     },
     {
+      assert: 'sameMembers',
+      expect: 'toEqual'
+    },
+    {
       assert: 'sameDeepMembers',
       expect: 'toEqual'
     }
@@ -216,6 +221,14 @@ export default function transformer(file, api) {
     );
   });
 
+  root.find(j.CallExpression, getAssertionExpression('typeOf')).replaceWith((path) => {
+    return makeExpectation('toBe', j.unaryExpression('typeof', path.value.arguments[0]), path.value.arguments[1]);
+  });
+
+  root.find(j.CallExpression, getAssertionExpression('notTypeOf')).replaceWith((path) => {
+    return makeNegativeExpectation('toBe', j.unaryExpression('typeof', path.value.arguments[0]), path.value.arguments[1]);
+  });
+
   // assert.lengthOf -> expect(*.length).toBe()
   root.find(j.CallExpression, getAssertionExpression('lengthOf')).replaceWith((path) => {
     return makeExpectation('toBe',
@@ -239,6 +252,8 @@ export default function transformer(file, api) {
     ],
     source: { type: 'Literal', value: 'chai' }
   }).remove();
+
+  root.get().node.comments = comments;
 
   return root.toSource();
 }
