@@ -255,5 +255,5 @@ export default function transformer(file, api) {
 
   root.get().node.comments = comments;
 
-  return root.toSource();
+  return root.toSource({ arrowParensAlways: true, quote: 'single' });
 }
